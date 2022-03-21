@@ -1,12 +1,37 @@
 const config = require("../config/auth.config");
 const db = require("../models");
+const nodemailer = require('nodemailer')
 const User = db.user;
 const Role = db.role;
 
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
 
+function makeid(length) {
+  var result           = '';
+  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * 
+charactersLength));
+ }
+ return result;
+}
+
 exports.signup = (req, res) => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp-mail.outlook.com", // hostname
+    secureConnection: false, // TLS requires secureConnection to be false
+    port: 587, // port for secure SMTP
+    tls: {
+       ciphers:'SSLv3'
+    },
+    auth: {
+        user: 'bassemjellali1995@outlook.com',
+        pass: '02052007@@@'
+    }
+    });
+    const tempPassword = makeid(8);
   const user = new User({
     username: req.body.username,
     email: req.body.email,
@@ -15,7 +40,7 @@ exports.signup = (req, res) => {
     cin: req.body.cin,
     salary: req.body.salary,
     type: req.body.type,
-    password: bcrypt.hashSync(req.body.password, 8)
+    password: bcrypt.hashSync(tempPassword, 8)
   });
 
   user.save((err, user) => {
@@ -60,11 +85,20 @@ exports.signup = (req, res) => {
             return;
           }
 
+          const mailOptions = {
+            from: 'School administration',
+            to: user.email,
+            subject: 'Welcome to our platform',
+            text: "This is your password: " + tempPassword
+            };
+            transporter.sendMail(mailOptions)
+
           res.send({ message: "User was registered successfully!" });
         });
       });
     }
   });
+  
 };
 
 exports.signin = (req, res) => {
