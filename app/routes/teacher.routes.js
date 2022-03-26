@@ -1,4 +1,5 @@
 const controller = require("../controllers/teacher.controller");
+const { authJwt } = require("../middlewares");
 
 module.exports = function(app) {
   app.use(function(req, res, next) {
@@ -11,12 +12,20 @@ module.exports = function(app) {
 
   app.put(
     "/api/teachers/add",
+    [authJwt.verifyToken],
     controller.addSubjectToTeacher
   );
 
   app.put(
     "/api/teachers/remove",
+    [authJwt.verifyToken],
     controller.removeSubjectFromTeacher
+  );
+
+  app.get(
+    "/api/teachers",
+    [authJwt.verifyToken],
+    controller.getTeacherById
   );
 
 };

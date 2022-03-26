@@ -93,4 +93,13 @@ exports.removeSubjectFromTeacher = async (req, res) => {
       
 };
 
+exports.getTeacherById = (req, res) => {
+  
+  const teacherId = req.body.teacherId;
+  User.findOne({_id: teacherId},
+      (err, teacher) => {
+        res.send(teacher)
+      });
+};
+
 

@@ -1,4 +1,5 @@
 const controller = require("../controllers/subject.controller");
+const { authJwt } = require("../middlewares");
 
 module.exports = function(app) {
   app.use(function(req, res, next) {
@@ -11,11 +12,13 @@ module.exports = function(app) {
 
   app.post(
     "/api/subjects",
+    [authJwt.verifyToken],
     controller.createSubject
   );
 
   app.get(
     "/api/subjects",
+    [authJwt.verifyToken],
     controller.getSubjectById
   );
 
