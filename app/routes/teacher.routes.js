@@ -10,8 +10,13 @@ module.exports = function(app) {
   });
 
   app.put(
-    "/api/teachers",
+    "/api/teachers/add",
     controller.addSubjectToTeacher
+  );
+
+  app.put(
+    "/api/teachers/remove",
+    controller.removeSubjectFromTeacher
   );
 
 };
