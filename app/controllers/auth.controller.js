@@ -20,16 +20,10 @@ charactersLength));
 
 exports.signup = (req, res) => {
   const transporter = nodemailer.createTransport({
-    host: "smtp-mail.outlook.com", // hostname
-    secureConnection: false, // TLS requires secureConnection to be false
-    port: 587, // port for secure SMTP
-    tls: {
-       ciphers:'SSLv3'
-    },
+    service: 'gmail',
     auth: {
-        user: 'bassemjellali1995@outlook.com',
-        pass: '02052007@@@'
-    }
+      user: 'kpi.esprit@gmail.com',
+      pass: '28108355'}
     });
     const tempPassword = makeid(8);
   const user = new User({
@@ -144,5 +138,90 @@ exports.signin = (req, res) => {
         roles: authorities,
         accessToken: token
       });
+    });
+};
+
+exports.forget = (req, res) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'kpi.esprit@gmail.com',
+      pass: '28108355'}
+    });
+
+  User.findOne({
+    email: req.body.email
+  })
+    .exec((err, user) => {
+      if (err) {
+        res.status(500).send({ message: err });
+        return;
+      }
+
+      if (!user) {
+        return res.status(404).send({ message: "User Not found." });
+      }
+      const tempPassword = makeid(8);
+      user.password = bcrypt.hashSync(tempPassword, 8);
+      user.save(err => {
+        if (err) {
+          res.status(500).send({ message: err });
+          return;
+        }
+
+        const mailOptions = {
+          from: 'School administration',
+          to: user.email,
+          subject: 'Password reset demand',
+          text: "This is your temporary password: " + tempPassword
+          };
+          transporter.sendMail(mailOptions)
+
+        res.send({ message: "Temporary password successfullly sent!" });
+      });
+    });
+};
+
+exports.reset = (req, res) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'kpi.esprit@gmail.com',
+      pass: '28108355'}
+    });
+
+  User.findOne({
+    email: req.body.email,
+  })
+    .exec((err, user) => {
+      if (err) {
+        res.status(500).send({ message: err });
+        return;
+      }
+
+      if (!user) {
+        return res.status(404).send({ message: "USER NOT FOUND" });
+      }
+      var passwordIsValid = bcrypt.compareSync(
+        req.body.currentPassword,
+        user.password
+      );
+
+      if (!passwordIsValid) {
+        return res.status(401).send({
+          accessToken: null,
+          message: "Invalid Current Password!"
+        });
+      } else {
+        user.password = bcrypt.hashSync(req.body.newPassword, 8);
+        user.save(err => {
+          if (err) {
+            res.status(500).send({ message: err });
+            return;
+          }
+          res.send({ message: "Password successfully reset! " });
+        });
+      }
+      
     });
 };
